@@ -13,6 +13,7 @@ namespace G_CodeMaster
         private Bitmap drawingBitmap2;
         private Graphics drawingGraphics;
         private StringBuilder gcode;
+        private string gcode2;
         private Point? startPoint = null;
         private Point? endPoint = null;
 
@@ -46,7 +47,6 @@ namespace G_CodeMaster
                 isDrawing = true;
                 startX = e.X;
                 startY = e.Y;
-                // Move to the start point without cutting
                 gcode.AppendLine($"G0 X{startX} Y{startY}");
                 gcode.AppendLine("M3 S1000 ; W³¹czenie lasera");
             }
@@ -59,8 +59,7 @@ namespace G_CodeMaster
                 drawingGraphics.DrawLine(Pens.DarkGreen, startX, startY, e.X, e.Y);
                 startX = e.X;
                 startY = e.Y;
-                pictureBox1.Invalidate(); // Aktualizacja obrazu
-                // Add line segment to G-Code
+                pictureBox1.Invalidate(); 
                 gcode.AppendLine($"G1 X{startX} Y{startY}");
             }
         }
@@ -70,7 +69,6 @@ namespace G_CodeMaster
             if (e.Button == MouseButtons.Left)
             {
                 isDrawing = false;
-                // Turn off the laser
                 gcode.AppendLine("M5 ; Wy³¹czenie lasera");
             }
         }
@@ -90,6 +88,8 @@ namespace G_CodeMaster
                 float largeCircle = float.Parse(tbLargeCircle.Text);
                 float smallerCircle = float.Parse(tbSmallerCircle.Text);
 
+                gcode = new StringBuilder();
+
                 drawingBitmap = new Bitmap(pictureBox1.Width, pictureBox1.Height);
                 drawingGraphics = Graphics.FromImage(drawingBitmap);
                 drawingGraphics.Clear(Color.Black);
@@ -104,9 +104,12 @@ namespace G_CodeMaster
                 drawingGraphics.DrawEllipse(Pens.Red, centerX - largerRadius, centerY - largerRadius, 2 * largerRadius, 2 * largerRadius);
                 drawingGraphics.DrawEllipse(Pens.Blue, centerX - smallerRadius, centerY - smallerRadius, 2 * smallerRadius, 2 * smallerRadius);
                 pictureBox1.Image = drawingBitmap;
+               richTextBox1.Text = gcode.ToString();
             }
-
-            richTextBox1.Text = gcode.ToString();
+            else
+            {
+                richTextBox1.Text = gcode.ToString();
+            }
         }
 
         private string GenerateGCode(float largerDiameter, float smallerDiameter)
