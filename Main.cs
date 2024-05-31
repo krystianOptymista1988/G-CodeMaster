@@ -106,9 +106,13 @@ namespace G_CodeMaster
                 pictureBox1.Image = drawingBitmap;
                richTextBox1.Text = gcode.ToString();
             }
-            else
+            else if(drawingBitmap2 != null)
             {
                 richTextBox1.Text = gcode.ToString();
+            }
+            else
+            {
+                MessageBox.Show("brak danych obrazu lub rysunku");
             }
         }
 
