@@ -111,7 +111,6 @@
             // 
             resources.ApplyResources(richTextBox1, "richTextBox1");
             richTextBox1.BackColor = SystemColors.ActiveCaptionText;
-            richTextBox1.BorderStyle = BorderStyle.FixedSingle;
             richTextBox1.ForeColor = Color.Green;
             richTextBox1.Name = "richTextBox1";
             // 
