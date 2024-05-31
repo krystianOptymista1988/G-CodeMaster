@@ -73,6 +73,7 @@
             // 
             resources.ApplyResources(pictureBox1, "pictureBox1");
             pictureBox1.BackColor = Color.Black;
+            pictureBox1.BorderStyle = BorderStyle.FixedSingle;
             pictureBox1.Name = "pictureBox1";
             pictureBox1.TabStop = false;
             // 

@@ -43,7 +43,7 @@ namespace G_CodeMaster
             {
                 endPoint = new Point(e.X, e.Y);
                 drawingGraphics.DrawLine(Pens.Black, startPoint.Value, endPoint.Value);
-                pictureBox1.Invalidate(); 
+                pictureBox1.Invalidate(); // Aktualizacja obrazu
                 startPoint = null;
                 endPoint = null;
             }
@@ -66,7 +66,7 @@ namespace G_CodeMaster
                 drawingGraphics.DrawLine(Pens.DarkGreen, startX, startY, e.X, e.Y);
                 startX = e.X;
                 startY = e.Y;
-                pictureBox1.Invalidate(); 
+                pictureBox1.Invalidate(); // Aktualizacja obrazu
             }
         }
 
@@ -93,11 +93,11 @@ namespace G_CodeMaster
                 float largeCircle = float.Parse(tbLargeCircle.Text);
                 float smallerCircle = float.Parse(tbSmallerCircle.Text);
 
-                
+
                 drawingBitmap = new Bitmap(pictureBox1.Width, pictureBox1.Height);
                 drawingGraphics = Graphics.FromImage(drawingBitmap);
                 drawingGraphics.Clear(Color.Black);
-           
+
                 gcode = GenerateGCode(largeCircle, smallerCircle);
                 float centerX = pictureBox1.Width / 2;
                 float centerY = pictureBox1.Height / 2;
@@ -111,57 +111,56 @@ namespace G_CodeMaster
             }
             else if (pictureBox1.Image == drawingBitmap2)
             {
-              
+
                 BitmapAsGCode(drawingBitmap2);
             }
 
             richTextBox1.Text = gcode;
         }
 
-        private void SaveBitmapAsGCode(Bitmap bitmap, string filePath)
-        {
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath))
-            {
-                file.WriteLine("; Generated G-Code");
-                for (int y = 0; y < bitmap.Height; y++)
-                {
-                    for (int x = 0; x < bitmap.Width; x++)
-                    {
-                        Color pixelColor = bitmap.GetPixel(x, y);
-                        if (pixelColor.ToArgb() == Color.DarkGreen.ToArgb())
-                        {
-                            file.WriteLine($"G1 X{x} Y{y}");
-                        }
-                    }
-                }
-                file.WriteLine("; End of G-Code");
-            }
-        }
 
         private void BitmapAsGCode(Bitmap bitmap)
         {
-            if (pictureBox1.Image != null)
+
+            gcode = "; Generated G-Code\n";
+            gcode += "G21 ; U¿ycie jednostek metrycznych\n";
+            gcode += "G90 ; Pozycjonowanie bezwzglêdne\n";
+            gcode += "G1 F1000 ; Ustawienie prêdkoœci ciêcia\n";
+            
+            
+            int counter = 0;
+            int yy = 0;
+            int xx = 0;
+
+            for (int y = 0; y < bitmap.Height; y++)
             {
-                gcode = "; Generated G-Code\n";
-                for (int y = 0; y < bitmap.Height; y++)
+                for (int x = 0; x < bitmap.Width; x++)
                 {
-                    for (int x = 0; x < bitmap.Width; x++)
+                    Color pixelColor = bitmap.GetPixel(x, y);
+                    if (pixelColor.ToArgb() == Color.DarkGreen.ToArgb())
                     {
-                        Color pixelColor = bitmap.GetPixel(x, y);
-                        if (pixelColor.ToArgb() == Color.DarkGreen.ToArgb())
+                        float scaledX = (float)x / bitmap.Width * pictureBox1.Width;
+                        float scaledY = (float)y / bitmap.Height * pictureBox1.Height;
+                        if (xx + 50 < x || xx - 50 > x || yy +50 < y || yy - 50 > y)
                         {
-                            float scaledX = (float)x / bitmap.Width * pictureBox1.Width;
-                            float scaledY = (float)y / bitmap.Height * pictureBox1.Height;
-                            gcode += $"G1 X{scaledX} Y{scaledY}\n";
+
+                            gcode += $"G1 X{scaledX} Y{scaledY} \n";
+                            xx = x;
+                            yy = y;
                         }
+                        counter++;
+                        if(counter==1)
+                        {
+                            gcode += "M3 S1000 ; W³¹czenie lasera\n";
+
+                        }
+                      
                     }
                 }
-                gcode += "; End of G-Code";
             }
-            else
-            {
-                MessageBox.Show("Wype³nij pola lub narysuj rysunek");
-            }
+            gcode += "M5 ; Wy³¹czenie lasera\n";
+            gcode += "G0 X0 Y0 ; Powrót do punktu startowego\n";
+            gcode += "; End of G-Code";
         }
 
 
@@ -180,36 +179,36 @@ namespace G_CodeMaster
             }
         }
         static string GenerateGCode(float largerDiameter, float smallerDiameter)
-            {
-            
-                float centerX = 0;
-                float centerY = 0;
+        {
 
-            
-                float largerRadius = largerDiameter / 2;
-                float smallerRadius = smallerDiameter / 2;
+            float centerX = 0;
+            float centerY = 0;
 
-                StringBuilder sb = new StringBuilder();
 
-                sb.AppendLine("G21 ; U¿ycie jednostek metrycznych");
-                sb.AppendLine("G90 ; Pozycjonowanie bezwzglêdne");
-                sb.AppendLine("G1 F1000 ; Ustawienie prêdkoœci ciêcia");
+            float largerRadius = largerDiameter / 2;
+            float smallerRadius = smallerDiameter / 2;
 
-           
-                sb.AppendLine($"G0 X{centerX + largerRadius} Y{centerY}");
-                sb.AppendLine("M3 S1000 ; W³¹czenie lasera");
-                sb.AppendLine($"G2 X{centerX + largerRadius} Y{centerY} I{-largerRadius} J0");
-                sb.AppendLine("M5 ; Wy³¹czenie lasera");
+            StringBuilder sb = new StringBuilder();
 
-           
-                sb.AppendLine($"G0 X{centerX + smallerRadius} Y{centerY}");
-                sb.AppendLine("M3 S1000 ; W³¹czenie lasera");
-                sb.AppendLine($"G2 X{centerX + smallerRadius} Y{centerY} I{-smallerRadius} J0");
-                sb.AppendLine("M5 ; Wy³¹czenie lasera");
+            sb.AppendLine("G21 ; U¿ycie jednostek metrycznych");
+            sb.AppendLine("G90 ; Pozycjonowanie bezwzglêdne");
+            sb.AppendLine("G1 F1000 ; Ustawienie prêdkoœci ciêcia");
 
-                sb.AppendLine("G0 X0 Y0 ; Powrót do punktu startowego");
 
-                return sb.ToString();
-            }
+            sb.AppendLine($"G0 X{centerX + largerRadius} Y{centerY}");
+            sb.AppendLine("M3 S1000 ; W³¹czenie lasera");
+            sb.AppendLine($"G2 X{centerX + largerRadius} Y{centerY} I{-largerRadius} J0");
+            sb.AppendLine("M5 ; Wy³¹czenie lasera");
+
+
+            sb.AppendLine($"G0 X{centerX + smallerRadius} Y{centerY}");
+            sb.AppendLine("M3 S1000 ; W³¹czenie lasera");
+            sb.AppendLine($"G2 X{centerX + smallerRadius} Y{centerY} I{-smallerRadius} J0");
+            sb.AppendLine("M5 ; Wy³¹czenie lasera");
+
+            sb.AppendLine("G0 X0 Y0 ; Powrót do punktu startowego");
+
+            return sb.ToString();
+        }
     }
 }
